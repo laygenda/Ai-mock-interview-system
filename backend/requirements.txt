@@ -1,6 +1,25 @@
-flask
-flask-sqlalchemy
-flask-migrate
-flask-cors
-python-dotenv
-psycopg2-binary
+# --- FRAMEWORK UTAMA ---
+flask==3.0.0
+flask-cors==4.0.0
+flask-sqlalchemy==3.1.1
+flask-migrate==4.0.5
+flask-jwt-extended==4.6.0
+python-dotenv==1.0.0
+werkzeug==3.0.1
+psycopg2-binary==2.9.9
+
+# --- PENGOLAHAN FILE ---
+pymupdf==1.23.8
+
+# --- NLP STACK: INDOBERT & FRIENDS (Sesuai Gambar) ---
+# 1. Preprocessing Dasar
+nltk==3.8.1
+PySastrawi==1.2.0
+
+# 2. Deep Learning Core (Pengganti SpaCy)
+torch==2.1.2         
+transformers==4.36.2 
+
+# 3. Analisis Statistik & Embedding
+scikit-learn==1.3.2
+numpy==1.26.2
