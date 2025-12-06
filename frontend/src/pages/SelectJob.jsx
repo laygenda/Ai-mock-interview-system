@@ -42,16 +42,19 @@ const SelectJob = () => {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
-            // Simpan Session ID agar halaman Interview nanti tahu ini sesi yang mana
+            // --- UPDATE BAGIAN INI ---
             localStorage.setItem('sessionId', response.data.session_id);
             localStorage.setItem('sessionRole', jobs.find(j => j.id === selectedJob).role_name);
             
-            alert(`Sesi Siap! ID: ${response.data.session_id}`);
+            // SIMPAN DATA PENTING UNTUK INTERVIEW ROOM
+            localStorage.setItem('questionsList', JSON.stringify(response.data.questions)); // Simpan Soal
+            localStorage.setItem('sessionLevel', level); // Simpan Level (Junior/Senior)
+            // -------------------------
             
-            // Redirect ke Halaman Interview Room (Nanti kita buat)
+            alert(`Sesi Siap! Mulai Mengerjakan.`);
             navigate('/interview-room');
 
-        } catch (error) {
+        } catch (error)  {
             console.error(error);
             alert("Gagal memulai sesi: " + (error.response?.data?.message || "Server Error"));
         } finally {
