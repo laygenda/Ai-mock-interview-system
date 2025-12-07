@@ -8,6 +8,8 @@ from app.services.question_service import generate_interview_questions
 from app.models.answer import Answer
 from app.models.score import Score
 from app.services.evaluation_service import calculate_score
+from app.models.resume import Resume
+from app.services.llm_service import generate_dynamic_questions
 
 interview_bp = Blueprint('interview', __name__)
 
@@ -31,15 +33,36 @@ def start_interview_session():
     if not role_id or not level:
         return jsonify({'message': 'Pilih Role dan Level!'}), 400
 
-    # Ambil nama role untuk generator soal
     job = JobRole.query.get(role_id)
     if not job:
         return jsonify({'message': 'Role tidak ditemukan'}), 404
 
-    # 1. Generate Soal sesuai Level
-    questions_list = generate_interview_questions(job.role_name, level)
+    # --- PERUBAHAN UTAMA: AMBIL DATA CV ---
+    # Kita butuh CV user untuk dikirim ke Gemini
+    resume = Resume.query.filter_by(user_id=current_user_id).order_by(Resume.id.desc()).first()
+    
+    cv_text = ""
+    skills_list = []
+    
+    if resume:
+        cv_text = resume.clean_text or ""
+        skills_list = resume.detected_skills or []
+    else:
+        # Jika user belum upload CV (seharusnya tidak terjadi karena dicek di dashboard)
+        cv_text = "Belum ada data CV."
+        skills_list = ["Umum"]
 
-    # 2. Simpan Sesi ke Database
+    # --- PANGGIL GEMINI API ---
+    print("Sedang meminta pertanyaan ke Gemini...")
+    questions_list = generate_dynamic_questions(
+        role=job.role_name, 
+        level=level, 
+        cv_text=cv_text, 
+        skills_list=skills_list
+    )
+    # --------------------------------------
+
+    # Simpan Sesi
     new_session = InterviewSession(
         user_id=current_user_id,
         role_id=role_id,
@@ -50,11 +73,11 @@ def start_interview_session():
     db.session.commit()
 
     return jsonify({
-        'message': 'Sesi dimulai!',
+        'message': 'Sesi dimulai (Powered by Gemini)!',
         'session_id': new_session.id,
         'role_name': job.role_name,
         'level': level,
-        'questions': questions_list # Kirim daftar soal ke Frontend
+        'questions': questions_list # List ini sekarang dinamis dari Gemini
     }), 201
 
 # --- 3. SUBMIT JAWABAN PER SOAL (REAL IMPLEMENTATION) ---
