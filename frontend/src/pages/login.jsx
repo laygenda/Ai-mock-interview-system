@@ -11,69 +11,70 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
-
         try {
-            // Nembak API Backend Flask
             const response = await axios.post('http://127.0.0.1:5000/api/auth/login', {
-                email: email,
-                password: password
+                email: email, password: password
             });
-
-            // Jika sukses, simpan Token JWT di LocalStorage browser
             localStorage.setItem('token', response.data.access_token);
-            
-            alert("Login Berhasil!");
-            // Nanti kita arahkan ke Dashboard (sekarang ke home dulu)
-            navigate('/dashboard'); 
-            
+            navigate('/dashboard');
         } catch (err) {
-            setError(err.response?.data?.message || 'Login Gagal. Cek email/password.');
+            setError('Login Gagal. Periksa email/password.');
         }
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-900">
-            <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-lg">
-                <h2 className="text-3xl font-bold text-center text-white">AI Mock Interview</h2>
-                <p className="text-center text-gray-400">Silakan login untuk memulai</p>
-                
-                {error && <div className="p-3 text-sm text-red-500 bg-red-100 rounded">{error}</div>}
+        <div className="flex items-center justify-center min-h-screen relative overflow-hidden">
+            
+            {/* Background Glow Effects (Hiasan) */}
+            <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600/30 rounded-full blur-[100px]"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-600/30 rounded-full blur-[100px]"></div>
+
+            {/* Login Card */}
+            <div className="glass-card w-full max-w-md p-10 relative z-10 animate-fade-in-up">
+                <div className="text-center mb-8">
+                    <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neon-purple to-neon-green mb-2">
+                        AI Mock Interview
+                    </h1>
+                    <p className="text-gray-400">Welcome back, Future Talent!</p>
+                </div>
+
+                {error && (
+                    <div className="mb-4 p-3 rounded bg-red-500/20 border border-red-500 text-red-200 text-sm text-center">
+                        {error}
+                    </div>
+                )}
 
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-300">Email</label>
+                        <label className="block text-sm text-neon-blue mb-2 font-semibold">EMAIL</label>
                         <input 
                             type="email" 
-                            className="w-full px-4 py-2 mt-2 text-white bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
+                            className="input-field"
+                            placeholder="nama@mahasiswa.pens.ac.id"
+                            value={email} onChange={(e) => setEmail(e.target.value)} required
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-300">Password</label>
+                        <label className="block text-sm text-neon-blue mb-2 font-semibold">PASSWORD</label>
                         <input 
                             type="password" 
-                            className="w-full px-4 py-2 mt-2 text-white bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
+                            className="input-field"
+                            placeholder="••••••••"
+                            value={password} onChange={(e) => setPassword(e.target.value)} required
                         />
                     </div>
-                    <button 
-                        type="submit" 
-                        className="w-full px-4 py-2 font-bold text-white bg-purple-600 rounded hover:bg-purple-700 transition duration-200"
-                    >
-                        Masuk
+                    <button type="submit" className="btn-primary">
+                        LOGIN SYSTEM
                     </button>
                 </form>
-                    <div className="text-center text-gray-400">
-                    Belum punya akun? <span 
-                        onClick={() => navigate('/register')}  // <--- Tambahkan fungsi klik ini
-                        className="text-purple-400 cursor-pointer hover:underline"
-                    >
-                        Daftar di sini
-                    </span>
+
+                <div className="mt-6 text-center">
+                    <p className="text-gray-500 text-sm">
+                        Belum punya akun?{' '}
+                        <span onClick={() => navigate('/register')} className="text-neon-green cursor-pointer hover:underline">
+                            Daftar Akses
+                        </span>
+                    </p>
                 </div>
             </div>
         </div>

@@ -4,213 +4,122 @@ import { useNavigate } from 'react-router-dom';
 import 'regenerator-runtime/runtime';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
-// Gambar Avatar (Bisa ganti URL lain)
 const AVATAR_URL = "https://img.freepik.com/free-psd/3d-illustration-person-with-sunglasses_23-2149436188.jpg";
 
 const InterviewRoom = () => {
     const navigate = useNavigate();
-    
-    // --- STATE UTAMA ---
     const [questions, setQuestions] = useState([]);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswer, setUserAnswer] = useState("");
     const [timer, setTimer] = useState(180); 
     const [isSenior, setIsSenior] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [isSpeaking, setIsSpeaking] = useState(false); // Status AI bicara
-
-    // Setup STT (Speech to Text)
-    const {
-        transcript,
-        listening,
-        resetTranscript,
-        browserSupportsSpeechRecognition
-    } = useSpeechRecognition();
-
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
     const sessionId = localStorage.getItem('sessionId');
     const sessionRole = localStorage.getItem('sessionRole');
     const timerRef = useRef(null);
 
-    // --- 1. LOAD DATA & CEK BROWSER ---
     useEffect(() => {
         const storedQuestions = JSON.parse(localStorage.getItem('questionsList') || "[]");
         const storedLevel = localStorage.getItem('sessionLevel');
-
         if (storedQuestions.length > 0) {
             setQuestions(storedQuestions);
             setIsSenior(storedLevel === 'Senior');
             setIsLoading(false);
-        } else {
-            alert("Data sesi hilang.");
-            navigate('/dashboard');
-        }
+        } else { navigate('/dashboard'); }
+    }, [navigate]);
 
-        if (!browserSupportsSpeechRecognition) {
-            alert("Browser Anda tidak mendukung fitur suara. Gunakan Chrome/Edge.");
-        }
-    }, [navigate, browserSupportsSpeechRecognition]);
-
-    // --- 2. FITUR TTS (AI BICARA) ---
     const speakQuestion = (text) => {
-        // Hentikan suara sebelumnya jika ada
         window.speechSynthesis.cancel();
-
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'id-ID'; // Bahasa Indonesia
-        utterance.rate = 1; // Kecepatan bicara normal
-        
+        utterance.lang = 'id-ID';
         utterance.onstart = () => setIsSpeaking(true);
         utterance.onend = () => setIsSpeaking(false);
-
         window.speechSynthesis.speak(utterance);
     };
 
-    // Efek: Baca soal setiap kali soal berubah (ganti nomor)
     useEffect(() => {
-        if (questions.length > 0) {
-            const currentQ = questions[currentQuestionIndex];
-            // Beri jeda sedikit agar natural
-            setTimeout(() => speakQuestion(currentQ), 500);
-        }
+        if (questions.length > 0) setTimeout(() => speakQuestion(questions[currentQuestionIndex]), 500);
     }, [currentQuestionIndex, questions]);
 
-    // --- 3. SINKRONISASI STT KE TEXTAREA ---
-    // Apa yang diucap user, otomatis masuk ke kotak jawaban
-    useEffect(() => {
-        setUserAnswer(transcript);
-    }, [transcript]);
+    useEffect(() => { setUserAnswer(transcript); }, [transcript]);
 
-    // --- 4. LOGIKA TIMER ---
     useEffect(() => {
         if (!isSenior) return;
         setTimer(180); 
         timerRef.current = setInterval(() => {
             setTimer((prev) => {
-                if (prev <= 1) {
-                    handleNextQuestion(); // Auto submit
-                    return 0;
-                }
+                if (prev <= 1) { handleNextQuestion(); return 0; }
                 return prev - 1;
             });
         }, 1000);
         return () => clearInterval(timerRef.current);
     }, [currentQuestionIndex, isSenior]);
 
-    // --- 5. NAVIGASI SOAL ---
     const submitAnswerToBackend = async (answerText) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.post('http://127.0.0.1:5000/api/interview/submit-answer', {
-                session_id: sessionId,
-                question: questions[currentQuestionIndex],
-                answer: answerText
-            }, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-        } catch (error) {
-            console.error("Gagal simpan jawaban:", error);
-        }
+            await axios.post('http://127.0.0.1:5000/api/interview/submit-answer', 
+                { session_id: sessionId, question: questions[currentQuestionIndex], answer: answerText }, 
+                { headers: { 'Authorization': 'Bearer ' + token } }
+            );
+        } catch (error) { console.error(error); }
     };
 
     const handleNextQuestion = async () => {
-        // Stop merekam & bicara jika user klik next
         SpeechRecognition.stopListening();
         window.speechSynthesis.cancel();
-
-        // Gunakan transcript (suara) atau userAnswer (ketikan manual)
-        const finalAnswer = userAnswer || transcript || "Tidak menjawab";
-        
-        await submitAnswerToBackend(finalAnswer);
-
+        await submitAnswerToBackend(userAnswer || transcript || "Tidak menjawab");
         if (currentQuestionIndex < questions.length - 1) {
-            resetTranscript(); // Bersihkan teks rekaman
-            setUserAnswer(""); 
-            setCurrentQuestionIndex((prev) => prev + 1);
-        } else {
-            navigate('/result');
-        }
+            resetTranscript(); setUserAnswer(""); setCurrentQuestionIndex(prev => prev + 1);
+        } else { navigate('/result'); }
     };
 
-    // Kontrol Mic
     const toggleMic = () => {
-        if (listening) {
-            SpeechRecognition.stopListening();
-        } else {
-            resetTranscript();
-            SpeechRecognition.startListening({ continuous: true, language: 'id-ID' });
-        }
+        if (listening) SpeechRecognition.stopListening();
+        else { resetTranscript(); SpeechRecognition.startListening({ continuous: true, language: 'id-ID' }); }
     };
 
-    if (isLoading) return <div className="text-white p-10 text-center">Menyiapkan Ruangan...</div>;
+    if (isLoading) return <div className="min-h-screen flex items-center justify-center text-neon-blue font-mono animate-pulse">LOADING MODULES...</div>;
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4">
-            
-            {/* Header */}
-            <div className="w-full max-w-5xl flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-purple-400">Interview: {sessionRole}</h2>
-                {isSenior && (
-                    <div className={`text-2xl font-mono font-bold ${timer < 30 ? 'text-red-500 animate-pulse' : 'text-green-400'}`}>
-                        {Math.floor(timer/60)}:{timer%60 < 10 ? '0' : ''}{timer%60}
-                    </div>
-                )}
+        <div className="min-h-screen p-6 flex flex-col items-center">
+            {/* Top Bar */}
+            <div className="w-full max-w-6xl flex justify-between items-center mb-8 glass-card px-6 py-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+                    <span className="font-mono text-red-400">LIVE SESSION: {sessionRole.toUpperCase()}</span>
+                </div>
+                {isSenior && <div className="text-2xl font-mono text-neon-green">{Math.floor(timer/60)}:{timer%60 < 10 ? '0' : ''}{timer%60}</div>}
             </div>
 
-            {/* Konten Utama: Kiri (Avatar) & Kanan (Jawaban) */}
-            <div className="flex flex-col md:flex-row gap-6 w-full max-w-5xl">
-                
-                {/* Panel Kiri: Avatar AI */}
-                <div className="md:w-1/3 bg-gray-800 rounded-2xl p-6 flex flex-col items-center justify-center border border-gray-700 shadow-xl relative">
-                    {/* Efek Animasi saat AI Bicara */}
-                    <div className={`absolute inset-0 rounded-2xl transition-opacity duration-300 ${isSpeaking ? 'bg-purple-500/20 animate-pulse' : 'bg-transparent'}`}></div>
-                    
-                    <img 
-                        src={AVATAR_URL} 
-                        alt="Avatar" 
-                        className={`w-40 h-40 rounded-full object-cover mb-6 border-4 shadow-lg transition-transform duration-500 ${isSpeaking ? 'border-green-400 scale-110' : 'border-purple-500 scale-100'}`}
-                    />
-                    
-                    <div className="bg-gray-700 p-4 rounded-xl text-center w-full relative z-10">
-                        <p className="text-sm text-gray-400 mb-1">AI Interviewer</p>
-                        <p className="font-semibold text-lg">"{questions[currentQuestionIndex]}"</p>
+            <div className="flex flex-col lg:flex-row gap-6 w-full max-w-6xl h-[600px]">
+                {/* Avatar Section */}
+                <div className="lg:w-1/3 glass-card flex flex-col items-center justify-center relative overflow-hidden border-t-2 border-neon-purple">
+                    <div className={`absolute inset-0 bg-neon-purple/10 transition-opacity duration-300 ${isSpeaking ? 'opacity-100 animate-pulse' : 'opacity-0'}`}></div>
+                    <img src={AVATAR_URL} className={`w-48 h-48 rounded-full border-4 shadow-[0_0_30px_rgba(176,38,255,0.4)] object-cover mb-6 transition-transform ${isSpeaking ? 'scale-105 border-neon-purple' : 'border-gray-600'}`} />
+                    <div className="px-6 w-full text-center relative z-10">
+                        <p className="text-xs text-neon-purple mb-2 font-bold tracking-widest">AI INTERVIEWER</p>
+                        <p className="text-white text-lg font-medium leading-relaxed">"{questions[currentQuestionIndex]}"</p>
                     </div>
                 </div>
 
-                {/* Panel Kanan: Input Jawaban */}
-                <div className="md:w-2/3 bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl flex flex-col">
-                    <label className="text-gray-300 mb-2 font-semibold">Jawaban Anda:</label>
-                    
-                    <textarea 
-                        className="flex-1 w-full bg-gray-900 text-white p-4 rounded-xl border border-gray-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-none mb-4 text-lg leading-relaxed"
-                        placeholder="Tekan Mic untuk bicara, atau ketik jawaban..."
-                        value={userAnswer}
-                        onChange={(e) => setUserAnswer(e.target.value)}
-                    ></textarea>
+                {/* Response Section */}
+                <div className="lg:w-2/3 glass-card p-6 flex flex-col border-t-2 border-neon-blue">
+                    <div className="flex-1 bg-dark-900/50 rounded-xl p-4 border border-gray-700 mb-4 overflow-y-auto font-mono text-sm text-gray-300 relative">
+                        {userAnswer || <span className="text-gray-600 italic">Menunggu respon suara...</span>}
+                        {listening && <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>}
+                    </div>
 
-                    {/* Tombol Kontrol Bawah */}
-                    <div className="flex justify-between items-center">
-                        
-                        {/* Tombol Mic Besar */}
-                        <button 
-                            onClick={toggleMic}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all shadow-lg transform hover:scale-105
-                                ${listening 
-                                    ? 'bg-red-500 hover:bg-red-600 animate-pulse text-white' 
-                                    : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
-                        >
-                            <span className="text-2xl">{listening ? '⏹️' : '🎙️'}</span>
-                            {listening ? 'Stop Rekam' : 'Mulai Bicara'}
+                    <div className="flex gap-4">
+                        <button onClick={toggleMic} className={`flex-1 py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all ${listening ? 'bg-red-500/20 text-red-400 border border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-dark-800 border border-gray-600 hover:border-white text-white'}`}>
+                            <span className="text-xl">{listening ? '⏹' : '🎙'}</span> {listening ? 'STOP RECORDING' : 'ACTIVATE MIC'}
                         </button>
-
-                        <button 
-                            onClick={handleNextQuestion}
-                            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-full font-bold text-white shadow-lg transition transform hover:-translate-y-1"
-                        >
-                            Selanjutnya ➡️
+                        <button onClick={handleNextQuestion} className="flex-1 btn-primary">
+                            SUBMIT & NEXT
                         </button>
                     </div>
-                    
-                    {listening && <p className="text-center text-xs text-green-400 mt-2">Mendengarkan suara Anda...</p>}
                 </div>
             </div>
         </div>
