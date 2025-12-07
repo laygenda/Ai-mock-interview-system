@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.extensions import db
 from app.models.user import User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from app.models.resume import Resume
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -48,6 +49,25 @@ def login():
 @auth_bp.route('/profile', methods=['GET'])
 @jwt_required()
 def get_current_user_profile():
-    current_user_id = get_jwt_identity()
-    user = User.query.get(int(current_user_id)) # Convert balik ke int
-    return jsonify(user.to_json()), 200
+    current_user_id = int(get_jwt_identity()) # Pastikan int
+    user = User.query.get(current_user_id)
+    
+    if not user:
+        return jsonify({'message': 'User tidak ditemukan'}), 404
+
+    # Ambil Resume Terakhir user ini
+    resume = Resume.query.filter_by(user_id=current_user_id).order_by(Resume.id.desc()).first()
+    
+    user_data = user.to_json()
+    
+    # Tambahkan info resume ke data user
+    if resume:
+        user_data['resume'] = {
+            'file_name': resume.file_name,
+            'uploaded_at': resume.uploaded_at.strftime('%d %b %Y'),
+            'skills': resume.detected_skills # Tampilkan skill hasil IndoBERT
+        }
+    else:
+        user_data['resume'] = None
+
+    return jsonify(user_data), 200

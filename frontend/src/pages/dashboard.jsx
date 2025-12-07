@@ -83,6 +83,11 @@ const Dashboard = () => {
                     >
                         History
                     </div>
+
+                    {/* Link Profile */}
+                    <div onClick={() => navigate('/profile')} className="block py-2 px-4 text-gray-400 hover:text-white hover:bg-gray-700 rounded cursor-pointer transition">
+                        Profile
+                    </div>
                     
                     {/* Tombol Logout */}
                     <button onClick={handleLogout} className="text-red-400 hover:text-red-300 mt-10 w-full text-left">

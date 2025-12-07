@@ -6,6 +6,7 @@ import InterviewRoom from './pages/InterviewRoom';
 import Register from './pages/Register';
 import Result from './pages/Result';
 import History from './pages/History';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -31,6 +32,9 @@ function App() {
 
         {/* halaman History */}
         <Route path="/history" element={<History />} />
+
+        {/* halaman Profile */}
+        <Route path="/profile" element={<Profile />} />
 
       </Routes>
     </Router>
