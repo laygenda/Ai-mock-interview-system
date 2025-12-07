@@ -5,6 +5,7 @@ import SelectJob from './pages/SelectJob';
 import InterviewRoom from './pages/InterviewRoom';
 import Register from './pages/Register';
 import Result from './pages/Result';
+import History from './pages/History';
 
 function App() {
   return (
@@ -27,6 +28,9 @@ function App() {
 
         {/* halaman Result */}
         <Route path="/result" element={<Result />} />
+
+        {/* halaman History */}
+        <Route path="/history" element={<History />} />
 
       </Routes>
     </Router>

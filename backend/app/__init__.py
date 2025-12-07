@@ -38,6 +38,9 @@ def create_app(config_class=Config):
 
     from app.api.interview_routes import interview_bp
     app.register_blueprint(interview_bp, url_prefix='/api/interview')
+    
+    from app.api.history_routes import history_bp
+    app.register_blueprint(history_bp, url_prefix='/api/history')
 
     @app.route('/')
     def index():

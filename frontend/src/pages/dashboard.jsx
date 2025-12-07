@@ -8,15 +8,18 @@ const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
+    // Fungsi Logout
     const handleLogout = () => {
         localStorage.removeItem('token');
         navigate('/');
     };
 
+    // Handle File Change
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
     };
 
+    // Handle Upload ke Backend
     const handleUpload = async (e) => {
         e.preventDefault();
         if (!file) {
@@ -33,7 +36,13 @@ const Dashboard = () => {
         try {
             const token = localStorage.getItem('token');
             
-            // PERBAIKAN DI SINI: Perhatikan spasi setelah kata Bearer
+            if (!token) {
+                alert("Sesi habis, silakan login ulang.");
+                navigate('/');
+                return;
+            }
+
+            // Tembak API Backend
             const response = await axios.post('http://127.0.0.1:5000/api/user/upload-resume', formData, {
                 headers: {
                     'Authorization': 'Bearer ' + token, 
@@ -42,15 +51,15 @@ const Dashboard = () => {
             });
 
             setUploadStatus(`Sukses! Skill terdeteksi: ${response.data.detected_skills.join(", ")}`);
-
-            // tambahan redirect setelah 1.5 detik
+            
+            // Redirect otomatis ke halaman Pilih Job setelah 1.5 detik
             setTimeout(() => {
                 navigate('/select-job');
             }, 1500);
             
         } catch (error) {
             console.error(error);
-            setUploadStatus('Gagal upload. Pastikan Anda sudah login ulang.');
+            setUploadStatus('Gagal upload. Pastikan file PDF dan Backend nyala.');
         } finally {
             setIsLoading(false);
         }
@@ -58,20 +67,38 @@ const Dashboard = () => {
 
     return (
         <div className="min-h-screen bg-gray-900 text-white flex">
+            {/* Sidebar Sederhana */}
             <aside className="w-64 bg-gray-800 p-6 hidden md:block">
                 <h1 className="text-2xl font-bold text-purple-500 mb-8">AI Mock Interview</h1>
                 <nav className="space-y-4">
-                    <a href="#" className="block py-2 px-4 bg-gray-700 rounded text-white">Dashboard</a>
-                    <button onClick={handleLogout} className="text-red-400 hover:text-red-300 mt-10 w-full text-left">Logout</button>
+                    {/* Link Dashboard */}
+                    <div className="block py-2 px-4 bg-gray-700 rounded text-white cursor-pointer">
+                        Dashboard
+                    </div>
+                    
+                    {/* Link History (SUDAH DIUPDATE) */}
+                    <div 
+                        onClick={() => navigate('/history')} 
+                        className="block py-2 px-4 text-gray-400 hover:text-white hover:bg-gray-700 rounded cursor-pointer transition"
+                    >
+                        History
+                    </div>
+                    
+                    {/* Tombol Logout */}
+                    <button onClick={handleLogout} className="text-red-400 hover:text-red-300 mt-10 w-full text-left">
+                        Logout
+                    </button>
                 </nav>
             </aside>
 
+            {/* Konten Utama */}
             <main className="flex-1 p-10">
                 <div className="flex justify-between items-center mb-10">
                     <h2 className="text-3xl font-bold">Selamat Datang, Mahasiswa!</h2>
                     <button onClick={handleLogout} className="md:hidden text-red-400">Logout</button>
                 </div>
 
+                {/* Card Upload CV */}
                 <div className="bg-gray-800 p-8 rounded-xl shadow-lg max-w-2xl mx-auto text-center border border-gray-700">
                     <h3 className="text-xl font-semibold mb-4">Mulai Latihan Wawancara</h3>
                     <p className="text-gray-400 mb-6">Jangan lupa upload CV/Resume terbaikmu yaaa!!!</p>
@@ -82,7 +109,12 @@ const Dashboard = () => {
                                 type="file" 
                                 accept="application/pdf"
                                 onChange={handleFileChange}
-                                className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+                                className="block w-full text-sm text-gray-400
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-purple-600 file:text-white
+                                hover:file:bg-purple-700"
                             />
                             <p className="mt-2 text-xs text-gray-500">Format: PDF only</p>
                         </div>
@@ -96,6 +128,7 @@ const Dashboard = () => {
                         </button>
                     </form>
 
+                    {/* Hasil Analisis NLP */}
                     {uploadStatus && (
                         <div className={`mt-6 p-4 rounded text-left ${uploadStatus.includes('Sukses') ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'}`}>
                             {uploadStatus}
