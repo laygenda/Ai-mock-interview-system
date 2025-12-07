@@ -41,6 +41,9 @@ def create_app(config_class=Config):
     
     from app.api.history_routes import history_bp
     app.register_blueprint(history_bp, url_prefix='/api/history')
+    
+    from app.api.dashboard_routes import dashboard_bp
+    app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
 
     @app.route('/')
     def index():
