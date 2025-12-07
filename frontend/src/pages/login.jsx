@@ -67,8 +67,13 @@ const Login = () => {
                         Masuk
                     </button>
                 </form>
-                <div className="text-center text-gray-400">
-                    Belum punya akun? <span className="text-purple-400 cursor-pointer hover:underline">Daftar di sini</span>
+                    <div className="text-center text-gray-400">
+                    Belum punya akun? <span 
+                        onClick={() => navigate('/register')}  // <--- Tambahkan fungsi klik ini
+                        className="text-purple-400 cursor-pointer hover:underline"
+                    >
+                        Daftar di sini
+                    </span>
                 </div>
             </div>
         </div>
