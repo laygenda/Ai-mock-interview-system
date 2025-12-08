@@ -10,7 +10,7 @@
 
 ---
 
-## 📖 Tentang Proyek
+## Tentang Proyek
 
 **AI Mock Interview System** adalah platform simulasi wawancara kerja yang dirancang untuk membantu mahasiswa dan pencari kerja melatih kesiapan karir mereka. Tidak seperti simulasi konvensional, sistem ini bersifat **adaptif** dan **personal**.
 
@@ -18,25 +18,25 @@ Sistem membaca CV pengguna, memahami skill yang dimiliki, lalu bertindak sebagai
 
 ---
 
-## ✨ Fitur Unggulan
+##  Fitur Unggulan
 
-### 🧠 1. Intelligent CV Analysis (NLP)
+### 1. Intelligent CV Analysis (NLP)
 Sistem tidak hanya menyimpan CV, tetapi "membacanya".
 * **Parsing:** Ekstraksi teks otomatis dari format PDF menggunakan `PyMuPDF`.
 * **Entity Recognition:** Menggunakan model **IndoBERT** untuk mendeteksi *Hard Skill* spesifik (misal: Python, Tableau, SQL) dari teks CV.
 
-### 🤖 2. Dynamic Interviewer (Generative AI)
+### 2. Dynamic Interviewer (Generative AI)
 Didukung oleh **Google Gemini 1.5 Flash**, sistem mampu:
 * Menghasilkan pertanyaan yang 100% unik setiap sesi.
 * Menyesuaikan pertanyaan dengan **Role** (Posisi) dan **Level** (Junior/Senior).
 * Melakukan validasi mendalam terhadap klaim skill di CV.
 
-### 🎙️ 3. Voice Interaction Experience
+### 3. Voice Interaction Experience
 Interaksi bebas genggam (*Hands-free*) layaknya berbicara dengan manusia:
 * **Text-to-Speech (TTS):** Pertanyaan dibacakan oleh browser.
 * **Speech-to-Text (STT):** Pengguna menjawab menggunakan suara yang langsung ditranskripsi menjadi teks secara *real-time*.
 
-### 📊 4. Automated Scoring & Feedback
+### 4. Automated Scoring & Feedback
 Penilaian instan tanpa campur tangan manusia:
 * **Relevansi Jawaban:** Menggunakan algoritma *Cosine Similarity* (TF-IDF).
 * **Analisis STAR:** Mengevaluasi struktur jawaban (Situation, Task, Action, Result).
@@ -44,7 +44,7 @@ Penilaian instan tanpa campur tangan manusia:
 
 ---
 
-## 🏗️ Arsitektur Sistem
+## Arsitektur Sistem
 
 Berikut adalah alur kerja data dari pengguna hingga pemrosesan AI:
 
